@@ -115,12 +115,28 @@ export function openSettingsModal(ctx) {
   wireListEditor("warmup", "warmup");
   wireListEditor("cooldown", "cooldown");
 
-  document.getElementById("s-export").addEventListener("click", () => {
-    const blob = new Blob([exportJSON(state)], { type: "application/json" });
+  document.getElementById("s-export").addEventListener("click", async () => {
+    const filename = `execution-assistant-backup-${state.meta.startDate}.json`;
+    const jsonStr = exportJSON(state);
+
+    if (window.claude && typeof window.claude.use === "function") {
+      try {
+        const downloads = await window.claude.use("downloads");
+        if (downloads) {
+          await downloads.save({ filename, data: jsonStr });
+          return;
+        }
+      } catch (e) {
+        if (e && e.code === "declined") return;
+        // otherwise fall through to the classic browser download below
+      }
+    }
+
+    const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `execution-assistant-backup-${state.meta.startDate}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();

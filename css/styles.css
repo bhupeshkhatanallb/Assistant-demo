@@ -27,8 +27,8 @@
   color-scheme: light;
 }
 
-:root:not([data-theme="light"]) {
-  @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
     --bg: #0b0e1a;
     --bg-elevated: #131728;
     --card: #151a2e;
