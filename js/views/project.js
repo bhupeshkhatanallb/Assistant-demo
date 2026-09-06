@@ -39,9 +39,10 @@ export function render(container, ctx) {
     </div>
 
     <div class="card">
-      <div class="card-title">Milestones (Your To-Do List)</div>
+      <div class="card-title">Milestones</div>
+      <div class="card-sub" style="margin-bottom:10px;">Big goals that take a few days, each with a deadline - project work or a job-search push, whatever's on your plate. Break each one into small steps using Job Prep To-Dos below, and link the to-do back to its milestone.</div>
       <div id="milestone-list">
-        ${milestones.length === 0 ? `<div class="empty-hint">No milestones yet. Add your first one below - break your project into small steps you can do in a day or two.</div>` : milestones.map((m) => milestoneRow(m)).join("")}
+        ${milestones.length === 0 ? `<div class="empty-hint">No milestones yet. Add your first one below.</div>` : milestones.map((m) => milestoneRow(m)).join("")}
       </div>
       <div class="section-label">Add a Milestone</div>
       ${milestoneForm(null)}
@@ -105,7 +106,6 @@ function milestoneRow(m) {
         </div>
       </div>
       <div class="list-row-meta">
-        ${m.minutes ? `<span class="badge muted">about ${m.minutes} min</span>` : ""}
         ${m.dueDate ? `<span class="badge muted">by ${m.dueDate}</span>` : ""}
         ${m.notes ? `<div style="margin-top:4px;">${escapeHtml(m.notes)}</div>` : ""}
       </div>
@@ -121,11 +121,8 @@ function milestoneForm(m) {
   const formId = isEdit ? m.id : "new";
   return `
     <form data-edit-form="${formId}" style="margin-top:${isEdit ? "8" : "10"}px;">
-      <div class="field"><label>What needs to get done?</label><input type="text" name="task" value="${escapeHtml(m?.task || "")}" placeholder="e.g. Get search working" required /></div>
-      <div class="row-2">
-        <div class="field"><label>About how long? (minutes)</label><input type="number" name="minutes" value="${m?.minutes ?? 45}" min="5" max="600" /></div>
-        <div class="field"><label>Due Date (optional)</label><input type="date" name="dueDate" value="${m?.dueDate || ""}" /></div>
-      </div>
+      <div class="field"><label>What's the big goal?</label><input type="text" name="task" value="${escapeHtml(m?.task || "")}" placeholder="e.g. Get search working, or Apply to 20 companies" required /></div>
+      <div class="field"><label>Deadline (optional)</label><input type="date" name="dueDate" value="${m?.dueDate || ""}" /></div>
       <div class="field"><label>Notes (optional)</label><textarea name="notes" rows="2">${escapeHtml(m?.notes || "")}</textarea></div>
       ${isEdit ? `<label style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><input type="checkbox" name="done" ${m?.done ? "checked" : ""} style="width:auto;" /> Done</label>` : ""}
       <div class="list-row-actions">
@@ -143,7 +140,6 @@ function wireMilestoneForm(container, formId, update) {
     const fd = new FormData(form);
     const data = {
       task: fd.get("task")?.trim(),
-      minutes: Number(fd.get("minutes")) || 45,
       dueDate: fd.get("dueDate"),
       notes: fd.get("notes")?.trim(),
     };

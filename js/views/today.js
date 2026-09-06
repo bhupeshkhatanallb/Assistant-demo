@@ -8,11 +8,11 @@ function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-function checklistItemHtml(id, text, checked) {
+function checklistItemHtml(id, text, checked, badge) {
   return `
     <div class="task-item ${checked ? "checked" : ""}" data-item-id="${id}">
       <div class="checkbox">${icon("check")}</div>
-      <div class="task-text">${escapeHtml(text)}</div>
+      <div class="task-text">${escapeHtml(text)}${badge ? `<span class="badge muted" style="margin-left:6px;">For: ${escapeHtml(badge)}</span>` : ""}</div>
     </div>`;
 }
 
@@ -50,6 +50,7 @@ export function render(container, ctx) {
   const gc = state.gymCompletion[iso] || { warmup: {}, cooldown: {}, rest: {} };
 
   const milestones = getOpenMilestones(state);
+  const milestoneById = Object.fromEntries((state.demoProject.milestones || []).map((m) => [m.id, m]));
 
   container.innerHTML = `
     <div class="priority-callout">
@@ -78,7 +79,7 @@ export function render(container, ctx) {
         <span class="badge muted">${jpDone}/${jpTotal} done this week</span>
       </div>
       <div class="task-list" id="jp-list">
-        ${jpItems.length === 0 ? `<div class="empty-hint">${jpTotal === 0 ? "No to-dos yet. Add one below, or add a batch in Setup." : "Everything for this week is done!"}</div>` : jpItems.map((it) => checklistItemHtml(it.id, it.text, false)).join("")}
+        ${jpItems.length === 0 ? `<div class="empty-hint">${jpTotal === 0 ? "No to-dos yet. Add one below, or add a batch in Setup." : "Everything for this week is done!"}</div>` : jpItems.map((it) => checklistItemHtml(it.id, it.text, false, milestoneById[it.milestoneId]?.task)).join("")}
       </div>
       <div class="inline-add">
         <input type="text" id="jp-new-input" placeholder="Add a to-do for this week..." />

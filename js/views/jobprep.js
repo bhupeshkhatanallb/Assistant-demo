@@ -1,6 +1,6 @@
 import { icon } from "../icons.js";
 import { todayISO, addDays } from "../dates.js";
-import { activeWeek, lastWeekOf, createWeek, copyWeek, addItem, toggleItemDone, deleteItem } from "../weeklyTodos.js";
+import { activeWeek, lastWeekOf, createWeek, copyWeek, addItem, toggleItemDone, deleteItem, setItemMilestone } from "../weeklyTodos.js";
 
 let selectedWeek = null;
 
@@ -20,6 +20,7 @@ export function render(container, ctx) {
   const week = state.jobPrepWeeks[selectedWeek];
   const items = week?.items || [];
   const done = items.filter((i) => i.done).length;
+  const milestones = state.demoProject.milestones || [];
 
   container.innerHTML = `
     <div class="card">
@@ -44,7 +45,7 @@ export function render(container, ctx) {
         <span class="badge muted">${done}/${items.length} done</span>
       </div>
       <div class="task-list" id="jp-item-list">
-        ${items.length === 0 ? `<div class="empty-hint">No tasks added yet for this week.</div>` : items.map((it, i) => itemRow(it, i, items.length)).join("")}
+        ${items.length === 0 ? `<div class="empty-hint">No tasks added yet for this week.</div>` : items.map((it, i) => itemRow(it, i, items.length, milestones)).join("")}
       </div>
       <div class="inline-add">
         <input type="text" id="jp-new-input" placeholder="Add a task (e.g. Apply to 3 jobs)" />
@@ -113,6 +114,13 @@ export function render(container, ctx) {
       });
     });
   });
+  container.querySelectorAll("[data-set-milestone]").forEach((sel) => {
+    sel.addEventListener("change", () => {
+      update((s) => {
+        setItemMilestone(s.jobPrepWeeks[selectedWeek], sel.dataset.setMilestone, sel.value || null);
+      });
+    });
+  });
   container.querySelectorAll("[data-del-item]").forEach((btn) => {
     btn.addEventListener("click", () => {
       update((s) => {
@@ -140,17 +148,29 @@ export function render(container, ctx) {
   });
 }
 
-function itemRow(it, i, total) {
+function itemRow(it, i, total, milestones) {
   return `
-    <div class="list-row" style="display:flex; align-items:center; gap:8px; padding:8px 10px;">
-      <div class="reorder-btns">
-        <button data-move-up="${it.id}" ${i === 0 ? "disabled" : ""}>${icon("up")}</button>
-        <button data-move-down="${it.id}" ${i === total - 1 ? "disabled" : ""}>${icon("down")}</button>
+    <div class="list-row" style="padding:8px 10px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="reorder-btns">
+          <button data-move-up="${it.id}" ${i === 0 ? "disabled" : ""}>${icon("up")}</button>
+          <button data-move-down="${it.id}" ${i === total - 1 ? "disabled" : ""}>${icon("down")}</button>
+        </div>
+        <div class="task-item ${it.done ? "checked" : ""}" data-toggle-item="${it.id}" style="background:none; border:none; padding:0; flex:1;">
+          <div class="checkbox">${icon("check")}</div>
+          <div class="task-text">${escapeHtml(it.text)}</div>
+        </div>
+        <button class="task-remove" data-del-item="${it.id}">${icon("trash")}</button>
       </div>
-      <div class="task-item ${it.done ? "checked" : ""}" data-toggle-item="${it.id}" style="background:none; border:none; padding:0; flex:1;">
-        <div class="checkbox">${icon("check")}</div>
-        <div class="task-text">${escapeHtml(it.text)}</div>
-      </div>
-      <button class="task-remove" data-del-item="${it.id}">${icon("trash")}</button>
+      ${
+        milestones.length > 0
+          ? `<div style="margin-top:6px; margin-left:34px;">
+              <select data-set-milestone="${it.id}" style="font-size:12px; padding:5px 8px; width:auto;">
+                <option value="">No milestone</option>
+                ${milestones.map((m) => `<option value="${m.id}" ${it.milestoneId === m.id ? "selected" : ""}>${escapeHtml(m.task)}</option>`).join("")}
+              </select>
+            </div>`
+          : ""
+      }
     </div>`;
 }

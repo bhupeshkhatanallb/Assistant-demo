@@ -33,13 +33,18 @@ export function createWeek(weeksMap, startIso) {
 export function copyWeek(weeksMap, startIso) {
   const last = lastWeekOf(weeksMap);
   const num = nextWeekNumber(weeksMap);
-  const items = last ? last.items.map((it) => ({ id: uid("wt"), text: it.text, done: false, doneDate: null })) : [];
+  const items = last ? last.items.map((it) => ({ id: uid("wt"), text: it.text, done: false, doneDate: null, milestoneId: it.milestoneId || null })) : [];
   weeksMap[num] = { weekNumber: num, startDate: startIso, items };
   return num;
 }
 
-export function addItem(week, text) {
-  week.items.push({ id: uid("wt"), text, done: false, doneDate: null });
+export function addItem(week, text, milestoneId = null) {
+  week.items.push({ id: uid("wt"), text, done: false, doneDate: null, milestoneId });
+}
+
+export function setItemMilestone(week, itemId, milestoneId) {
+  const it = week.items.find((i) => i.id === itemId);
+  if (it) it.milestoneId = milestoneId || null;
 }
 
 export function toggleItemDone(week, itemId, iso) {
