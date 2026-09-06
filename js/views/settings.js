@@ -43,13 +43,10 @@ export function openSettingsModal(ctx) {
 
         <div class="section-label">Sprint</div>
         <div class="field"><label>Sprint Start Date (Day 1)</label><input type="date" id="s-start" value="${state.meta.startDate}" /></div>
-        <div class="row-2">
-          <div class="field"><label>Completion Threshold for Streak</label>
-            <select id="s-threshold">
-              ${[0.4, 0.5, 0.6, 0.7, 0.8].map((v) => `<option value="${v}" ${state.meta.completionThreshold === v ? "selected" : ""}>${Math.round(v * 100)}%</option>`).join("")}
-            </select>
-          </div>
-          <div class="field"><label>Weekly Application Target</label><input type="number" id="s-apptarget" value="${state.meta.weeklyApplicationTarget}" min="1" max="20" /></div>
+        <div class="field"><label>How much of your hour goal counts as a "done" day for your streak?</label>
+          <select id="s-threshold">
+            ${[0.4, 0.5, 0.6, 0.7, 0.8, 1].map((v) => `<option value="${v}" ${state.meta.completionThreshold === v ? "selected" : ""}>${Math.round(v * 100)}%</option>`).join("")}
+          </select>
         </div>
         <div class="field"><label>Override "Today" (optional - testing/backfill)</label><input type="date" id="s-override" value="${state.meta.dateOverride || ""}" /></div>
 
@@ -168,7 +165,6 @@ export function openSettingsModal(ctx) {
     update((s) => {
       s.meta.startDate = document.getElementById("s-start").value || s.meta.startDate;
       s.meta.completionThreshold = Number(document.getElementById("s-threshold").value);
-      s.meta.weeklyApplicationTarget = Number(document.getElementById("s-apptarget").value) || 5;
       const override = document.getElementById("s-override").value;
       s.meta.dateOverride = override || null;
     });

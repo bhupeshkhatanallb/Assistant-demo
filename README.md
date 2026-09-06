@@ -16,10 +16,10 @@ Then open the printed URL on your phone or desktop. Opening `index.html` directl
 
 ## Tabs
 
-- **Today** — your job-prep tasks and project tasks for today (in plain English, each with a time estimate), your workout (with warm-up/cool-down), and a daily journal. Tasks are sized to fit 3 hours on office days (Mon-Sat) or 8 hours on your one holiday (Sunday).
-- **Setup** — one scrollable page with three sections: **Your Project** (name, tools, milestones), **Your Gym Plan** (exercises per weekday, with new weeks you can create without losing old ones), and **Your Job List** (application tracker with at-a-glance stats).
-- **Progress** — streak, sprint completion heatmap, a collapsible full 30-day plan, fitness metrics, and notes history.
+- **Today** — log your actual hours worked (goal: 3h on office days Mon-Sat, 8h on Sunday - you can log more or less), check off this week's job-prep to-dos and workouts (added yourself, done in whatever order you like), your open project milestones, warm-up/cool-down, and a daily journal.
+- **Setup** — one scrollable page with four sections: **Your Project** (name, tools, milestones), **Job Prep To-Dos** (a weekly list you write yourself), **Gym Plan** (a weekly pool of workouts you pick from day to day - Sunday is always rest), and **Your Job Applications** (tracker with at-a-glance stats). Both weekly lists support New Week / Copy Last Week, and old weeks are kept.
+- **Progress** — streak, a heatmap of how much of your daily hour goal you hit, a collapsible full 30-day plan (loose inspiration, not an assignment), fitness metrics, and notes history.
 
-Settings (gear icon, top right) lets you set the sprint start date, streak threshold, warm-up/cool-down items, and export/import a JSON backup of all your data. The app is light-mode only.
+Settings (gear icon, top right) lets you set the sprint start date, the streak threshold, warm-up/cool-down items, and export/import a JSON backup of all your data. The app is light-mode only.
 
 Everything is stored only in your browser's `localStorage` — nothing is sent anywhere.

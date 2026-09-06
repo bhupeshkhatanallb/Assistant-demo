@@ -1,7 +1,7 @@
 import * as store from "./store.js";
 import { icon } from "./icons.js";
 import { todayISO, dayOfSprint, formatLong } from "./dates.js";
-import { computeStreak, computeSprintProgress, computeDayCompletion } from "./taskEngine.js";
+import { computeStreak, computeDayExecution } from "./taskEngine.js";
 import { openSettingsModal } from "./views/settings.js";
 
 import * as todayView from "./views/today.js";
@@ -40,10 +40,10 @@ function renderHeader() {
   const dayNum = dayOfSprint(state, iso);
   const clampedDay = Math.max(1, Math.min(30, dayNum));
   const streak = computeStreak(state);
-  const todayComp = computeDayCompletion(state, iso, clampedDay);
-  const todayPct = todayComp.overall.total > 0 ? Math.round(todayComp.overall.pct * 100) : 0;
-  const hoursDone = (todayComp.minutes.done / 60).toFixed(1).replace(/\.0$/, "");
-  const hoursTotal = (todayComp.minutes.total / 60).toFixed(1).replace(/\.0$/, "");
+  const exec = computeDayExecution(state, iso);
+  const todayPct = Math.round(exec.pct * 100);
+  const hoursDone = (exec.loggedMinutes / 60).toFixed(1).replace(/\.0$/, "");
+  const hoursGoal = (exec.goalMinutes / 60).toFixed(1).replace(/\.0$/, "");
 
   headerEl.innerHTML = `
     <div class="header-top">
@@ -55,8 +55,8 @@ function renderHeader() {
     </div>
     <div class="stat-row">
       <div class="stat-chip streak"><div class="val">🔥${streak}</div><div class="lbl">Streak</div></div>
-      <div class="stat-chip"><div class="val">${hoursDone}h/${hoursTotal}h</div><div class="lbl">Time Today</div></div>
-      <div class="stat-chip"><div class="val">${todayPct}%</div><div class="lbl">Today Done</div></div>
+      <div class="stat-chip"><div class="val">${hoursDone}h/${hoursGoal}h</div><div class="lbl">Hours Today</div></div>
+      <div class="stat-chip"><div class="val">${todayPct}%</div><div class="lbl">Of Goal</div></div>
     </div>
   `;
 

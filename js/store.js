@@ -24,18 +24,13 @@ const DEFAULT_METRIC_DEFS = [
   { key: "sleep", label: "Sleep", unit: "hrs" },
 ];
 
-function emptyWeekDays() {
-  return { Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: [] };
-}
-
 export function defaultState() {
   const todayISO = new Date().toISOString().slice(0, 10);
   return {
-    version: 1,
+    version: 2,
     meta: {
       startDate: todayISO,
       completionThreshold: 0.6,
-      weeklyApplicationTarget: 5,
       lastTab: "today",
       dateOverride: null,
       warmup: DEFAULT_WARMUP,
@@ -50,14 +45,16 @@ export function defaultState() {
       notes: "",
       milestones: [],
     },
-    gymPlans: {
-      1: { weekNumber: 1, startDate: todayISO, days: emptyWeekDays() },
+    jobPrepWeeks: {
+      1: { weekNumber: 1, startDate: todayISO, items: [] },
+    },
+    gymWeeks: {
+      1: { weekNumber: 1, startDate: todayISO, items: [] },
     },
     gymCompletion: {},
+    timeLog: {},
     jobs: [],
-    dailyCompletion: {},
     dailyNotes: {},
-    customTasks: {},
     fitnessMetrics: {},
     metricDefs: DEFAULT_METRIC_DEFS,
   };

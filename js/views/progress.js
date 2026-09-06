@@ -1,6 +1,6 @@
 import { icon } from "../icons.js";
 import { todayISO, dayOfSprint, isoForSprintDay, sprintPhase, PHASE_INFO, formatShort } from "../dates.js";
-import { computeStreak, computeSprintProgress, computeDayCompletion } from "../taskEngine.js";
+import { computeStreak, computeSprintProgress, computeDayExecution } from "../taskEngine.js";
 import { ROADMAP_THEMES } from "../data/roadmapThemes.js";
 
 function escapeHtml(s) {
@@ -56,14 +56,12 @@ export function render(container, ctx) {
       heatCells.push(`<div class="heat-cell" title="Day ${d}"></div>`);
       continue;
     }
-    const { overall } = computeDayCompletion(state, dIso, d);
+    const { pct } = computeDayExecution(state, dIso);
     let cls = "";
-    if (overall.total > 0) {
-      if (overall.pct >= 0.85) cls = "l3";
-      else if (overall.pct >= 0.4) cls = "l2";
-      else if (overall.pct > 0) cls = "l1";
-    }
-    heatCells.push(`<div class="heat-cell ${cls}" title="Day ${d}: ${Math.round(overall.pct * 100)}%"></div>`);
+    if (pct >= 0.85) cls = "l3";
+    else if (pct >= 0.4) cls = "l2";
+    else if (pct > 0) cls = "l1";
+    heatCells.push(`<div class="heat-cell ${cls}" title="Day ${d}: ${Math.round(pct * 100)}% of hour goal"></div>`);
   }
 
   const metricDefs = state.metricDefs || [];
@@ -80,7 +78,7 @@ export function render(container, ctx) {
         <div class="card-title">${icon("fire")} Execution Streak</div>
         <span class="badge priority">${streak}-day streak</span>
       </div>
-      <div class="card-sub" style="margin-bottom:10px;">Day ${currentDay}/30 · ${sprintPct}% overall sprint completion</div>
+      <div class="card-sub" style="margin-bottom:10px;">Day ${currentDay}/30 · averaging ${sprintPct}% of your daily hour goal</div>
       <div class="progress-track" style="margin-bottom:12px;"><div class="progress-fill" style="width:${sprintPct}%"></div></div>
       <div class="heatmap">${heatCells.join("")}</div>
     </div>
