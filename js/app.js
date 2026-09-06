@@ -2,30 +2,21 @@ import * as store from "./store.js";
 import { icon } from "./icons.js";
 import { todayISO, dayOfSprint, formatLong } from "./dates.js";
 import { computeStreak, computeSprintProgress, computeDayCompletion } from "./taskEngine.js";
-import { openSettingsModal, applyTheme } from "./views/settings.js";
+import { openSettingsModal } from "./views/settings.js";
 
 import * as todayView from "./views/today.js";
-import * as planView from "./views/plan.js";
-import * as projectView from "./views/project.js";
-import * as gymView from "./views/gym.js";
-import * as jobsView from "./views/jobs.js";
+import * as setupView from "./views/setup.js";
 import * as progressView from "./views/progress.js";
 
 const TABS = [
   { id: "today", label: "Today", icon: "today" },
-  { id: "plan", label: "Plan", icon: "plan" },
-  { id: "project", label: "Project", icon: "project" },
-  { id: "gym", label: "Gym", icon: "gym" },
-  { id: "jobs", label: "Jobs", icon: "jobs" },
+  { id: "setup", label: "Setup", icon: "project" },
   { id: "progress", label: "Progress", icon: "progress" },
 ];
 
 const VIEWS = {
   today: todayView,
-  plan: planView,
-  project: projectView,
-  gym: gymView,
-  jobs: jobsView,
+  setup: setupView,
   progress: progressView,
 };
 
@@ -49,9 +40,10 @@ function renderHeader() {
   const dayNum = dayOfSprint(state, iso);
   const clampedDay = Math.max(1, Math.min(30, dayNum));
   const streak = computeStreak(state);
-  const sprintPct = Math.round(computeSprintProgress(state) * 100);
   const todayComp = computeDayCompletion(state, iso, clampedDay);
   const todayPct = todayComp.overall.total > 0 ? Math.round(todayComp.overall.pct * 100) : 0;
+  const hoursDone = (todayComp.minutes.done / 60).toFixed(1).replace(/\.0$/, "");
+  const hoursTotal = (todayComp.minutes.total / 60).toFixed(1).replace(/\.0$/, "");
 
   headerEl.innerHTML = `
     <div class="header-top">
@@ -62,12 +54,9 @@ function renderHeader() {
       <button class="icon-btn" id="settings-btn">${icon("settings")}</button>
     </div>
     <div class="stat-row">
-      <div class="stat-chip"><div class="val">${sprintPct}%</div><div class="lbl">Sprint</div></div>
-      <div class="stat-chip"><div class="val">${todayPct}%</div><div class="lbl">Today</div></div>
       <div class="stat-chip streak"><div class="val">🔥${streak}</div><div class="lbl">Streak</div></div>
-      <div class="stat-chip"><div class="val">${todayComp.career.done}/${todayComp.career.total}</div><div class="lbl">Career</div></div>
-      <div class="stat-chip"><div class="val">${todayComp.demo.done}/${todayComp.demo.total}</div><div class="lbl">Demo</div></div>
-      <div class="stat-chip"><div class="val">${todayComp.gym.isRest ? "Rest" : `${todayComp.gym.done}/${todayComp.gym.total}`}</div><div class="lbl">Gym</div></div>
+      <div class="stat-chip"><div class="val">${hoursDone}h/${hoursTotal}h</div><div class="lbl">Time Today</div></div>
+      <div class="stat-chip"><div class="val">${todayPct}%</div><div class="lbl">Today Done</div></div>
     </div>
   `;
 
@@ -98,8 +87,6 @@ function renderAll() {
   renderNav();
   const view = VIEWS[currentTab];
   view.render(mainEl, ctx);
-  window.scrollTo({ top: window.scrollY }); // no-op, keeps scroll position stable across rerenders
 }
 
-applyTheme(state.meta.theme);
 renderAll();

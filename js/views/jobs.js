@@ -3,33 +3,15 @@ import { uid } from "../store.js";
 import { todayISO } from "../dates.js";
 import { getJobStats } from "../taskEngine.js";
 
-const STATUSES = [
-  "Target",
-  "Applied",
-  "Recruiter contacted",
-  "Recruiter screen",
-  "Technical interview",
-  "System design",
-  "Hiring manager",
-  "Final",
-  "Offer",
-  "Rejected",
-  "Ghosted",
-];
+const STATUSES = ["Want to Apply", "Applied", "Interviewing", "Offer", "Rejected"];
 const WORK_MODES = ["Remote", "Hybrid", "On-site"];
 
 const STATUS_COLOR = {
-  Target: "muted",
+  "Want to Apply": "muted",
   Applied: "muted",
-  "Recruiter contacted": "muted",
-  "Recruiter screen": "priority",
-  "Technical interview": "priority",
-  "System design": "priority",
-  "Hiring manager": "priority",
-  Final: "priority",
+  Interviewing: "priority",
   Offer: "done",
   Rejected: "blocked",
-  Ghosted: "blocked",
 };
 
 let editingId = null;
@@ -49,12 +31,12 @@ export function render(container, ctx) {
 
   container.innerHTML = `
     <div class="card">
-      <div class="card-title">Pipeline Dashboard</div>
+      <div class="card-title">At a Glance</div>
       <div class="metric-grid" style="margin-top:8px;">
         <div class="metric-tile"><div class="val">${stats.applicationsThisWeek}</div><div class="lbl">This Week</div></div>
-        <div class="metric-tile"><div class="val">${stats.applicationsTotal}</div><div class="lbl">Total Applied</div></div>
-        <div class="metric-tile"><div class="val">${stats.interviews}</div><div class="lbl">Interviews</div></div>
-        <div class="metric-tile"><div class="val">${stats.activePipelines}</div><div class="lbl">Active</div></div>
+        <div class="metric-tile"><div class="val">${stats.applicationsTotal}</div><div class="lbl">Applied</div></div>
+        <div class="metric-tile"><div class="val">${stats.interviews}</div><div class="lbl">Interviewing</div></div>
+        <div class="metric-tile"><div class="val">${stats.activePipelines}</div><div class="lbl">Still Open</div></div>
         <div class="metric-tile"><div class="val">${stats.referrals}</div><div class="lbl">Referrals</div></div>
         <div class="metric-tile"><div class="val">${stats.offers}</div><div class="lbl">Offers</div></div>
       </div>
@@ -162,23 +144,23 @@ function jobForm(j) {
         </div>
       </div>
       <div class="row-2">
-        <div class="field"><label>Salary / Comp</label><input type="text" name="salary" value="${escapeHtml(j?.salary || "")}" placeholder="e.g. $170-190k" /></div>
-        <div class="field"><label>Job URL</label><input type="text" name="url" value="${escapeHtml(j?.url || "")}" /></div>
+        <div class="field"><label>Pay</label><input type="text" name="salary" value="${escapeHtml(j?.salary || "")}" placeholder="e.g. $170-190k" /></div>
+        <div class="field"><label>Job Link</label><input type="text" name="url" value="${escapeHtml(j?.url || "")}" /></div>
       </div>
       <div class="row-2">
         <div class="field"><label>Date Applied</label><input type="date" name="dateApplied" value="${j?.dateApplied || ""}" /></div>
         <div class="field"><label>Status</label>
-          <select name="status">${STATUSES.map((s) => `<option value="${s}" ${(j?.status || "Target") === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+          <select name="status">${STATUSES.map((s) => `<option value="${s}" ${(j?.status || "Want to Apply") === s ? "selected" : ""}>${s}</option>`).join("")}</select>
         </div>
       </div>
       <div class="row-2">
-        <div class="field"><label>Recruiter / Contact</label><input type="text" name="contact" value="${escapeHtml(j?.contact || "")}" /></div>
+        <div class="field"><label>Contact Person</label><input type="text" name="contact" value="${escapeHtml(j?.contact || "")}" /></div>
         <div class="field"><label>Follow-up Date</label><input type="date" name="followUpDate" value="${j?.followUpDate || ""}" /></div>
       </div>
       <div class="row-2">
-        <div class="field"><label>Interview Stage / Round</label><input type="text" name="interviewStage" value="${escapeHtml(j?.interviewStage || "")}" placeholder="e.g. Onsite round 2" /></div>
+        <div class="field"><label>Interview Round (if any)</label><input type="text" name="interviewStage" value="${escapeHtml(j?.interviewStage || "")}" placeholder="e.g. Onsite round 2" /></div>
         <div class="field" style="display:flex; align-items:flex-end;">
-          <label style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><input type="checkbox" name="referral" ${j?.referral ? "checked" : ""} style="width:auto;" /> Referral</label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><input type="checkbox" name="referral" ${j?.referral ? "checked" : ""} style="width:auto;" /> I have a referral</label>
         </div>
       </div>
       <div class="field"><label>Notes</label><textarea name="notes" rows="2">${escapeHtml(j?.notes || "")}</textarea></div>

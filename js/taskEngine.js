@@ -1,13 +1,13 @@
-import { CAREER_POOLS, PHASE_CATEGORY_ORDER, PHASE_TASK_COUNT } from "./data/careerPools.js";
-import { dayOfSprint, sprintPhase, todayISO, weekdayName, getActiveGymWeek, isoForSprintDay, parseISO, addDays } from "./dates.js";
+import { CAREER_POOLS, PHASE_CATEGORY_ORDER } from "./data/careerPools.js";
+import { dayOfSprint, sprintPhase, todayISO, weekdayName, getActiveGymWeek, isoForSprintDay, parseISO, addDays, dailyBudgetMinutes } from "./dates.js";
 
 export function getJobStats(state, iso) {
   const jobs = state.jobs;
   const weekAgo = addDays(iso, -6);
   const applicationsThisWeek = jobs.filter((j) => j.dateApplied && j.dateApplied >= weekAgo && j.dateApplied <= iso).length;
   const applicationsTotal = jobs.filter((j) => j.dateApplied).length;
-  const interviewStatuses = ["Technical interview", "System design", "Hiring manager", "Final"];
-  const activePipelines = jobs.filter((j) => !["Rejected", "Ghosted", "Offer"].includes(j.status)).length;
+  const interviewStatuses = ["Interviewing"];
+  const activePipelines = jobs.filter((j) => !["Rejected", "Offer"].includes(j.status)).length;
   const interviews = jobs.filter((j) => interviewStatuses.includes(j.status)).length;
   const referrals = jobs.filter((j) => j.referral).length;
   const offers = jobs.filter((j) => j.status === "Offer").length;
@@ -29,7 +29,7 @@ export function getJobStats(state, iso) {
 export function getDemoStats(state, dayNum) {
   const ms = state.demoProject.milestones || [];
   const total = ms.length;
-  const done = ms.filter((m) => m.status === "done").length;
+  const done = ms.filter((m) => m.done).length;
   const expected = total > 0 ? Math.round((Math.min(dayNum, 30) / 30) * total) : 0;
   const behindSchedule = total > 0 && done < expected - 1;
   return { total, done, expected, behindSchedule };
@@ -41,90 +41,103 @@ function rotate(arr, n) {
   return arr.slice(k).concat(arr.slice(0, k));
 }
 
+function splitBudget(totalMinutes) {
+  const career = Math.round(totalMinutes * 0.5);
+  return { career, demo: totalMinutes - career };
+}
+
 export function generateCareerTasks(state, dayNum, iso) {
   const phase = sprintPhase(dayNum);
   const jobStats = getJobStats(state, iso);
   const demoStats = getDemoStats(state, dayNum);
-  const count = PHASE_TASK_COUNT[phase] || 3;
+  const { career: careerBudget } = splitBudget(dailyBudgetMinutes(iso));
+
   const tasks = [];
   const used = new Set();
+  let minutesUsed = 0;
 
-  const pushFromPool = (catId, poolId) => {
-    const pool = CAREER_POOLS[catId];
-    if (!pool) return false;
-    const start = (dayNum + catId.length) % pool.length;
-    for (let i = 0; i < pool.length; i++) {
-      const item = pool[(start + i) % pool.length];
-      const key = `${catId}:${item.id}`;
-      if (!used.has(key)) {
-        used.add(key);
-        tasks.push({ id: item.id, text: item.text, category: catId, priority: false });
-        return true;
-      }
-    }
-    return false;
-  };
-
-  // Determine top priority
-  let topCategory = null;
+  // Pick the one most important task for today
   let topTask = null;
   if (jobStats.nearInterview) {
     const j = jobStats.nearInterview;
-    topTask = { id: `interview-${j.id}`, text: `Prep for ${j.role} @ ${j.company} - ${j.status}`, category: "interview", priority: true };
+    const round = j.interviewStage ? ` (${j.interviewStage})` : "";
+    topTask = { id: `interview-${j.id}`, text: `Get ready for your interview at ${j.company}${round}`, category: "interview", minutes: 30, priority: true };
   } else if (demoStats.behindSchedule) {
-    topCategory = "demoFocus";
+    topTask = { id: "focus-demo", text: "Your project is behind schedule - spend extra time on it today (see below)", category: "demo", minutes: 10, priority: true };
   } else if (jobStats.applicationsThisWeek < state.meta.weeklyApplicationTarget) {
-    topCategory = "applications";
+    const pool = CAREER_POOLS.applications;
+    const item = pool[dayNum % pool.length];
+    topTask = { id: item.id, text: item.text, category: "applications", minutes: item.minutes, priority: true };
+    used.add(`applications:${item.id}`);
   } else {
     const rotatingTop = ["coding", "systemDesign", "rag"];
-    topCategory = rotatingTop[dayNum % rotatingTop.length];
+    const cat = rotatingTop[dayNum % rotatingTop.length];
+    const pool = CAREER_POOLS[cat];
+    const item = pool[dayNum % pool.length];
+    topTask = { id: item.id, text: item.text, category: cat, minutes: item.minutes, priority: true };
+    used.add(`${cat}:${item.id}`);
   }
-
-  if (topTask) {
-    tasks.push(topTask);
-  } else if (topCategory === "demoFocus") {
-    tasks.push({ id: "focus-demo", text: "Prioritize demo project work today - it's behind the 30-day pace. See Demo checklist below.", category: "demo", priority: true });
-  } else if (topCategory) {
-    pushFromPool(topCategory, null);
-    if (tasks.length) tasks[0].priority = true;
-  }
+  tasks.push(topTask);
+  minutesUsed += topTask.minutes;
 
   const categories = rotate(PHASE_CATEGORY_ORDER[phase] || Object.keys(CAREER_POOLS), dayNum);
-  let idx = 0;
-  while (tasks.length < count && idx < categories.length * 3) {
-    const cat = categories[idx % categories.length];
-    pushFromPool(cat, null);
-    idx++;
+  let categoryIdx = 0;
+  while (minutesUsed < careerBudget && categoryIdx < categories.length * 4) {
+    const cat = categories[categoryIdx % categories.length];
+    categoryIdx++;
+    const pool = CAREER_POOLS[cat];
+    if (!pool) continue;
+    const start = (dayNum + cat.length) % pool.length;
+    for (let i = 0; i < pool.length; i++) {
+      const item = pool[(start + i) % pool.length];
+      const key = `${cat}:${item.id}`;
+      if (!used.has(key)) {
+        used.add(key);
+        tasks.push({ id: item.id, text: item.text, category: cat, minutes: item.minutes, priority: false });
+        minutesUsed += item.minutes;
+        break;
+      }
+    }
   }
 
-  const custom = (state.customTasks[iso]?.career || []).map((text, i) => ({ id: `custom-career-${i}`, text, category: "custom", priority: false, custom: true }));
-  return tasks.slice(0, count).concat(custom);
+  const custom = (state.customTasks[iso]?.career || []).map((text, i) => ({ id: `custom-career-${i}`, text, category: "custom", minutes: 15, priority: false, custom: true }));
+  return tasks.concat(custom);
 }
 
 export function generateDemoTasks(state, dayNum, iso) {
   const ms = state.demoProject.milestones || [];
-  const custom = (state.customTasks[iso]?.demo || []).map((text, i) => ({ id: `custom-demo-${i}`, text, custom: true }));
+  const custom = (state.customTasks[iso]?.demo || []).map((text, i) => ({ id: `custom-demo-${i}`, text, minutes: 15, custom: true }));
   if (ms.length === 0) {
-    return [{ id: "setup-project", text: "Open the Project tab and configure your demo project (name, stack, milestones)", locked: true }].concat(custom);
+    return [{ id: "setup-project", text: "Go to Setup and add your project (name, tech, milestones)", locked: true, minutes: 0 }].concat(custom);
   }
-  const phase = sprintPhase(dayNum);
-  const count = phase === 2 || phase === 3 ? 3 : 2;
-  const priorityRank = { high: 0, medium: 1, low: 2 };
+  const { demo: demoBudget } = splitBudget(dailyBudgetMinutes(iso));
   const open = ms
-    .filter((m) => m.status !== "done")
+    .filter((m) => !m.done)
     .sort((a, b) => {
-      const pr = (priorityRank[a.priority] ?? 1) - (priorityRank[b.priority] ?? 1);
-      if (pr !== 0) return pr;
       if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
       if (a.dueDate) return -1;
       if (b.dueDate) return 1;
       return 0;
     });
-  const picked = open.slice(0, count).map((m) => ({ id: `ms-${m.id}`, text: m.task, milestoneId: m.id }));
-  if (picked.length === 0) {
-    picked.push({ id: "all-done", text: "All current milestones done - add the next milestone in the Project tab", locked: true });
+
+  const tasks = [];
+  let minutesUsed = 0;
+  for (const m of open) {
+    const minutes = m.minutes || 45;
+    if (tasks.length > 0 && minutesUsed + minutes > demoBudget) break;
+    tasks.push({ id: `ms-${m.id}`, text: m.task, milestoneId: m.id, minutes });
+    minutesUsed += minutes;
+    if (minutesUsed >= demoBudget) break;
   }
-  return picked.concat(custom);
+  if (tasks.length === 0) {
+    if (open.length > 0) {
+      const m = open[0];
+      tasks.push({ id: `ms-${m.id}`, text: m.task, milestoneId: m.id, minutes: m.minutes || 45 });
+    } else {
+      tasks.push({ id: "all-done", text: "All your milestones are done - add the next one in Setup", locked: true, minutes: 0 });
+    }
+  }
+  return tasks.concat(custom);
 }
 
 export function getTodayWorkout(state, iso) {
@@ -173,6 +186,11 @@ export function computeDayCompletion(state, iso, dayNum) {
       workout.cooldown.filter((c) => gc.cooldown?.[c.id]).length;
   }
 
+  const sumMinutes = (list) => list.reduce((sum, t) => sum + (t.minutes || 0), 0);
+  const minutesTotal = sumMinutes(career.filter((t) => !t.locked)) + sumMinutes(demo.filter((t) => !t.locked));
+  const minutesDone =
+    sumMinutes(career.filter((t) => !t.locked && dc.career?.[t.id])) + sumMinutes(demo.filter((t) => !t.locked && dc.demo?.[t.id]));
+
   const total = careerTotal + demoTotal + gymTotal;
   const done = careerDone + demoDone + gymDone;
   const pct = total > 0 ? done / total : 0;
@@ -181,6 +199,7 @@ export function computeDayCompletion(state, iso, dayNum) {
     career: { done: careerDone, total: careerTotal },
     demo: { done: demoDone, total: demoTotal },
     gym: { done: gymDone, total: gymTotal, isRest: workout.rest },
+    minutes: { done: minutesDone, total: minutesTotal },
     overall: { done, total, pct },
   };
 }

@@ -53,15 +53,6 @@ export function openSettingsModal(ctx) {
         </div>
         <div class="field"><label>Override "Today" (optional - testing/backfill)</label><input type="date" id="s-override" value="${state.meta.dateOverride || ""}" /></div>
 
-        <div class="section-label">Appearance</div>
-        <div class="field">
-          <select id="s-theme">
-            <option value="system" ${state.meta.theme === "system" ? "selected" : ""}>System</option>
-            <option value="light" ${state.meta.theme === "light" ? "selected" : ""}>Light</option>
-            <option value="dark" ${state.meta.theme === "dark" ? "selected" : ""}>Dark</option>
-          </select>
-        </div>
-
         ${listEditor("Warm-up Checklist", state.meta.warmup, "warmup")}
         ${listEditor("Cool-down Checklist", state.meta.cooldown, "cooldown")}
 
@@ -180,16 +171,7 @@ export function openSettingsModal(ctx) {
       s.meta.weeklyApplicationTarget = Number(document.getElementById("s-apptarget").value) || 5;
       const override = document.getElementById("s-override").value;
       s.meta.dateOverride = override || null;
-      s.meta.theme = document.getElementById("s-theme").value;
     });
-    applyTheme(state.meta.theme);
     close();
   });
-}
-
-export function applyTheme(theme) {
-  const root = document.documentElement;
-  if (theme === "light") root.setAttribute("data-theme", "light");
-  else if (theme === "dark") root.setAttribute("data-theme", "dark");
-  else root.removeAttribute("data-theme");
 }

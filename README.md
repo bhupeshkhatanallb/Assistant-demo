@@ -16,13 +16,10 @@ Then open the printed URL on your phone or desktop. Opening `index.html` directl
 
 ## Tabs
 
-- **Today** — your daily career tasks, demo-project tasks, workout (with warm-up/cool-down), and journal.
-- **Plan** — the 30-day roadmap, grouped by phase.
-- **Project** — configure your demo project (name, stack, architecture checklist, milestones).
-- **Gym** — configure your weekly workout split; create new weeks without losing old ones.
-- **Jobs** — application tracker with pipeline metrics.
-- **Progress** — streak, sprint completion heatmap, fitness metrics, notes history.
+- **Today** — your job-prep tasks and project tasks for today (in plain English, each with a time estimate), your workout (with warm-up/cool-down), and a daily journal. Tasks are sized to fit 3 hours on office days (Mon-Sat) or 8 hours on your one holiday (Sunday).
+- **Setup** — one scrollable page with three sections: **Your Project** (name, tools, milestones), **Your Gym Plan** (exercises per weekday, with new weeks you can create without losing old ones), and **Your Job List** (application tracker with at-a-glance stats).
+- **Progress** — streak, sprint completion heatmap, a collapsible full 30-day plan, fitness metrics, and notes history.
 
-Settings (gear icon, top right) lets you set the sprint start date, streak threshold, warm-up/cool-down items, theme, and export/import a JSON backup of all your data.
+Settings (gear icon, top right) lets you set the sprint start date, streak threshold, warm-up/cool-down items, and export/import a JSON backup of all your data. The app is light-mode only.
 
 Everything is stored only in your browser's `localStorage` — nothing is sent anywhere.

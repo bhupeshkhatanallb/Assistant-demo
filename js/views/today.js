@@ -3,10 +3,11 @@ import { todayISO, dayOfSprint, weekdayName, formatLong } from "../dates.js";
 import { generateCareerTasks, generateDemoTasks, getTodayWorkout, computeDayCompletion, getJobStats, getDemoStats } from "../taskEngine.js";
 
 function taskItemHtml(t, checked, removable) {
+  const timeTag = t.minutes ? `<span class="badge muted" style="margin-left:6px;">${t.minutes} min</span>` : "";
   return `
     <div class="task-item ${checked ? "checked" : ""}" data-task-id="${t.id}" data-locked="${t.locked ? "1" : "0"}">
       <div class="checkbox">${icon("check")}</div>
-      <div class="task-text">${t.priority ? '<span class="badge priority" style="margin-right:6px;">Priority</span>' : ""}${escapeHtml(t.text)}</div>
+      <div class="task-text">${t.priority ? '<span class="badge priority" style="margin-right:6px;">Priority</span>' : ""}${escapeHtml(t.text)}${timeTag}</div>
       ${removable ? `<button class="task-remove" data-remove-custom="${t.id}">${icon("trash")}</button>` : ""}
     </div>`;
 }
@@ -48,6 +49,9 @@ export function render(container, ctx) {
   if (!workout.rest) priorityLines.push(`Complete today's ${wd} workout`);
   else priorityLines.push("Rest day - light recovery only");
 
+  const plannedHours = (comp.minutes.total / 60).toFixed(1).replace(/\.0$/, "");
+  const doneHours = (comp.minutes.done / 60).toFixed(1).replace(/\.0$/, "");
+
   container.innerHTML = `
     <div class="priority-callout">
       <div class="pc-label">${icon("target")} Today's Priority</div>
@@ -56,7 +60,15 @@ export function render(container, ctx) {
 
     <div class="card">
       <div class="card-title-row">
-        <div class="card-title">Career: ${comp.career.done}/${comp.career.total}</div>
+        <div class="card-title">Job Prep Time</div>
+        <span class="badge muted">${doneHours}h of ${plannedHours}h</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${comp.minutes.total > 0 ? Math.round((comp.minutes.done / comp.minutes.total) * 100) : 0}%"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">Job Search: ${comp.career.done}/${comp.career.total}</div>
       </div>
       <div class="task-list" id="career-list">
         ${career.map((t) => taskItemHtml(t, !!dc.career?.[t.id], !!t.custom)).join("")}
@@ -69,8 +81,8 @@ export function render(container, ctx) {
 
     <div class="card">
       <div class="card-title-row">
-        <div class="card-title">Demo Project: ${comp.demo.done}/${comp.demo.total}</div>
-        ${demoStats.total > 0 ? `<span class="badge ${demoStats.behindSchedule ? "blocked" : "muted"}">${demoStats.done}/${demoStats.total} milestones</span>` : ""}
+        <div class="card-title">My Project: ${comp.demo.done}/${comp.demo.total}</div>
+        ${demoStats.total > 0 ? `<span class="badge ${demoStats.behindSchedule ? "blocked" : "muted"}">${demoStats.done}/${demoStats.total} milestones done</span>` : ""}
       </div>
       <div class="task-list" id="demo-list">
         ${demo.map((t) => taskItemHtml(t, !!dc.demo?.[t.id], !!t.custom)).join("")}

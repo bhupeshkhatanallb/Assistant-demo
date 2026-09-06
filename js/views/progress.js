@@ -1,9 +1,45 @@
 import { icon } from "../icons.js";
-import { todayISO, dayOfSprint, isoForSprintDay } from "../dates.js";
+import { todayISO, dayOfSprint, isoForSprintDay, sprintPhase, PHASE_INFO, formatShort } from "../dates.js";
 import { computeStreak, computeSprintProgress, computeDayCompletion } from "../taskEngine.js";
+import { ROADMAP_THEMES } from "../data/roadmapThemes.js";
 
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function renderRoadmap(state, iso, currentDay) {
+  const phases = { 1: [], 2: [], 3: [], 4: [] };
+  for (let d = 1; d <= 30; d++) phases[sprintPhase(d)].push(d);
+
+  return Object.keys(phases)
+    .map((p) => {
+      const info = PHASE_INFO[p];
+      return `
+        <div class="phase-block">
+          <div class="phase-head">
+            <div class="phase-name">Phase ${p}: ${info.name}</div>
+            <div class="phase-range">${info.range}</div>
+          </div>
+          <div class="card" style="padding:4px 10px;">
+            ${phases[p]
+              .map((d) => {
+                const dIso = isoForSprintDay(state, d);
+                const isToday = d === currentDay;
+                const isPast = dIso < iso;
+                return `
+                <div class="roadmap-day ${isToday ? "today" : ""} ${isPast ? "past" : ""}">
+                  <div class="dnum">D${d}</div>
+                  <div class="rtext">
+                    ${ROADMAP_THEMES[d] || ""}
+                    <div class="card-sub" style="margin-top:3px;">${formatShort(dIso)}</div>
+                  </div>
+                </div>`;
+              })
+              .join("")}
+          </div>
+        </div>`;
+    })
+    .join("");
 }
 
 export function render(container, ctx) {
@@ -47,6 +83,13 @@ export function render(container, ctx) {
       <div class="card-sub" style="margin-bottom:10px;">Day ${currentDay}/30 · ${sprintPct}% overall sprint completion</div>
       <div class="progress-track" style="margin-bottom:12px;"><div class="progress-fill" style="width:${sprintPct}%"></div></div>
       <div class="heatmap">${heatCells.join("")}</div>
+    </div>
+
+    <div class="card">
+      <details>
+        <summary style="cursor:pointer; font-size:15px; font-weight:800;">${icon("plan")} See Your Full 30-Day Plan</summary>
+        <div style="margin-top:12px;">${renderRoadmap(state, iso, currentDay)}</div>
+      </details>
     </div>
 
     <div class="card">

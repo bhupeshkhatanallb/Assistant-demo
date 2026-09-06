@@ -36,6 +36,18 @@ export function isoForSprintDay(state, dayNum) {
   return addDays(state.meta.startDate, dayNum - 1);
 }
 
+// Office day = Mon-Sat (you're prepping after work). Sunday is the one holiday/rest day.
+export function isOfficeDay(iso) {
+  return weekdayName(iso) !== "Sunday";
+}
+
+export const OFFICE_DAY_MINUTES = 180;
+export const HOLIDAY_MINUTES = 480;
+
+export function dailyBudgetMinutes(iso) {
+  return isOfficeDay(iso) ? OFFICE_DAY_MINUTES : HOLIDAY_MINUTES;
+}
+
 export function sprintPhase(dayNum) {
   if (dayNum <= 7) return 1;
   if (dayNum <= 15) return 2;
