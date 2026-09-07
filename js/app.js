@@ -1,4 +1,5 @@
 import * as store from "./store.js";
+import * as dbSync from "./dbSync.js";
 import { icon } from "./icons.js";
 import { todayISO, dayOfSprint, formatLong } from "./dates.js";
 import { computeStreak, computeDayExecution } from "./taskEngine.js";
@@ -31,6 +32,7 @@ function update(mutator) {
   mutator(state);
   store.save(state);
   renderAll();
+  dbSync.saveToDb(state);
 }
 
 const ctx = { get state() { return state; }, update };
@@ -90,3 +92,24 @@ function renderAll() {
 }
 
 renderAll();
+
+// Reconcile with the durable store once it's reachable: adopt it if it
+// already has data, otherwise seed it with what we've got so the store
+// exists for next time (and for other devices/tabs).
+(async () => {
+  const remote = await dbSync.loadFromDb();
+  if (remote) {
+    state = remote;
+    store.save(state);
+    currentTab = state.meta.lastTab && VIEWS[state.meta.lastTab] ? state.meta.lastTab : currentTab;
+    renderAll();
+  } else {
+    dbSync.saveToDb(state);
+  }
+
+  dbSync.subscribe((remoteState) => {
+    state = remoteState;
+    store.save(state);
+    renderAll();
+  });
+})();

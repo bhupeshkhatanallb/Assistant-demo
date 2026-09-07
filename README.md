@@ -1,6 +1,6 @@
 # 30-Day AI Career + Physique Execution Assistant
 
-A mobile-first personal execution assistant for a 30-day sprint toward a high-paying AI/Backend role while building your physique. No backend, no build step — plain HTML/CSS/JS with all data stored locally in your browser (`localStorage`).
+A mobile-first personal execution assistant for a 30-day sprint toward a high-paying AI/Backend role while building your physique. No backend, no build step — plain HTML/CSS/JS. State always writes to `localStorage` for an instant load and as a fallback; when hosted as a Claude Artifact (`js/dbSync.js`), it also persists to the artifact's own durable document store, so your data survives reloads/republishes/tab or device switches instead of depending only on this browser's local storage.
 
 ## Run it
 
@@ -22,4 +22,4 @@ Then open the printed URL on your phone or desktop. Opening `index.html` directl
 
 Settings (gear icon, top right) lets you set the sprint start date, the streak threshold, warm-up/cool-down items, and export/import a JSON backup of all your data. The app is light-mode only.
 
-Everything is stored only in your browser's `localStorage` — nothing is sent anywhere.
+Data stays private to this artifact/browser — nothing is sent to any third-party service.
