@@ -49,16 +49,16 @@ export function dailyBudgetMinutes(iso) {
 
 export function sprintPhase(dayNum) {
   if (dayNum <= 7) return 1;
-  if (dayNum <= 15) return 2;
-  if (dayNum <= 23) return 3;
+  if (dayNum <= 14) return 2;
+  if (dayNum <= 21) return 3;
   return 4;
 }
 
 export const PHASE_INFO = {
-  1: { name: "Positioning & Foundations", range: "Days 1-7" },
-  2: { name: "Aggressive Build + Apply", range: "Days 8-15" },
-  3: { name: "Polish + System Design + Applications", range: "Days 16-23" },
-  4: { name: "Launch + Mocks + Referrals + Final Prep", range: "Days 24-30" },
+  1: { name: "Build the RAG Foundation", range: "Days 1-7" },
+  2: { name: "Agentic AI + Lead Generation", range: "Days 8-14" },
+  3: { name: "Production Engineering + Docker + AWS", range: "Days 15-21" },
+  4: { name: "Interview Mode", range: "Days 22-30" },
 };
 
 export function formatLong(iso) {
